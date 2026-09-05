@@ -43,9 +43,8 @@ Phones only expose the camera on HTTPS. For testing the Shooting stage on your p
 
 1. Open the repo on GitHub, click the green **Code** button, then the **Codespaces** tab, then **Create codespace on claude/creator-content-platform-my570i**.
 2. Wait for the editor to open and for the terminal to say "Viralyzer is starting on port 3000" (the first start builds the app, about two minutes).
-3. Open the **Ports** tab at the bottom, find port 3000, and click the globe icon. The app opens in a new tab with a real HTTPS address.
-4. To use it on your phone or connect social accounts, right-click the port, choose **Port Visibility → Public**, and open the same address on your phone. The app detects the codespace address on its own, so `PUBLIC_BASE_URL` needs no setup.
-5. Add your keys to `.env` in the editor (the file is created for you), then run `bash scripts/codespaces-start.sh` in the terminal to restart.
+3. The terminal prints a public `https://….trycloudflare.com` address inside a box. Open it on any device, phone included. No port settings needed; the app uses that address for OAuth callbacks automatically.
+4. Add your keys to `.env` in the editor (the file is created for you), then run `bash scripts/codespaces-start.sh` in the terminal to restart. The address changes on each restart.
 
 Free accounts get 60 hours a month on a 2-core machine, and your projects stay in the codespace between sessions. The codespace pauses after 30 minutes idle; reopening it from the same Codespaces tab resumes with everything intact.
 
