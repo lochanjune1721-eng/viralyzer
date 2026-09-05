@@ -39,6 +39,22 @@ npm run dev               # http://localhost:3000
 
 Phones only expose the camera on HTTPS. For testing the Shooting stage on your phone, run `npm run dev -- --experimental-https` or put the dev server behind a tunnel (ngrok, Cloudflare Tunnel) and set `PUBLIC_BASE_URL` to that URL.
 
+### Run it for $0
+
+**Option A: your own computer + a free tunnel (best free option, full power, 10 minutes).**
+
+1. Install [Docker Desktop](https://www.docker.com/products/docker-desktop/) (free), or Node 22 + ffmpeg + Python 3.
+2. `cp .env.example .env`, add your keys.
+3. Start it: `docker compose up --build` (or `npm install && npm run dev`).
+4. In a second terminal: `npm run tunnel`. It prints a public `https://…trycloudflare.com` URL. No account needed.
+5. Put that URL in `.env` as `PUBLIC_BASE_URL` and restart. Open it on your phone: camera, recording, editing and publishing all work, rendering runs on your machine.
+
+The quick-tunnel URL changes each time you start it. For a stable URL (needed for OAuth app settings), create a free Cloudflare account and a named tunnel, or use ngrok's free static domain.
+
+**Option B: a free 24/7 server.** Oracle Cloud's Always Free tier gives an ARM VM with 4 cores and 24 GB RAM at no cost. Install Docker on it, clone the repo, `docker compose up -d`, and point a tunnel or a free Cloudflare domain at port 3000. About 30 minutes of setup, then it runs forever.
+
+**Option C: free tiers of PaaS hosts (demo only).** Render and Koyeb have free Docker instances, but they give 512 MB RAM (too little for reliable 1080p renders), sleep after idle, and offer no persistent disk on the free plan, so projects are lost on every restart. Fine for a look, not for real use.
+
 ### One-click hosts that work (ffmpeg included)
 
 - **Render**: connect the repo, choose "Blueprint", `render.yaml` provisions the Docker service and a persistent disk.

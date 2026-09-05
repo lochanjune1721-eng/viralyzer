@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "tunnel": "npx --yes cloudflared tunnel --url http://localhost:3000"
   },
   "dependencies": {
     "lucide-react": "^1.41.0",
