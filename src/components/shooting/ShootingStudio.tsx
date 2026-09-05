@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { Download, FolderPlus, Trash2 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
-import { api } from "@/lib/api-client";
+import { api, uploadVideoChunked } from "@/lib/api-client";
 import { Button, Card, cx, formatTime, useToast } from "@/components/ui";
 import { useApp } from "@/components/shell/AppContext";
 import type { Project } from "@/lib/types";
@@ -66,8 +66,9 @@ export function ShootingStudio() {
       const idea = script.split(/\n/).find((l) => l.trim())?.slice(0, 120) || "Teleprompter recording";
       const { project } = await api<{ project: Project }>("/api/projects", { method: "POST", body: { idea } });
       await api(`/api/projects/${project.id}`, { method: "PATCH", body: { finalScript: script, stage: "shooting" } });
+      const uploadId = await uploadVideoChunked(rec.blob, rec.blob.type.includes("mp4") ? "take.mp4" : "take.webm");
       const form = new FormData();
-      form.append("file", rec.blob, rec.blob.type.includes("mp4") ? "take.mp4" : "take.webm");
+      form.append("uploadId", uploadId);
       form.append("source", "recorded");
       await api(`/api/projects/${project.id}/takes`, { method: "POST", body: form });
       const fresh = await api<{ project: Project }>(`/api/projects/${project.id}`);

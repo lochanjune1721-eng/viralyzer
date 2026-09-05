@@ -9,6 +9,7 @@ import { startJob } from "@/lib/jobs";
 import { normalizeVideo, probe } from "@/lib/media/ffmpeg";
 import { projectDir, relPath } from "@/lib/storage";
 import type { TakeRecording } from "@/lib/types";
+import { takeCompletedUpload } from "@/lib/uploads";
 
 export async function GET(_req: Request, ctx: RouteContext<"/api/projects/[id]/takes">) {
   const user = await getCurrentUser();
@@ -29,14 +30,34 @@ export async function POST(req: Request, ctx: RouteContext<"/api/projects/[id]/t
   if (!cap.ok) return badRequest(cap.reason || "Video processing is unavailable on this server", { videoUnavailable: true });
   const form = await req.formData();
   const file = form.get("file");
-  if (!(file instanceof File)) return badRequest("Missing video file");
+  const uploadId = form.get("uploadId");
+  if (!(file instanceof File) && typeof uploadId !== "string") return badRequest("Missing video file");
   const source = form.get("source") === "uploaded" ? "uploaded" : "recorded";
   const dir = projectDir(id, "takes");
   const takeId = newId("t");
-  const ext = (path.extname(file.name || "") || (file.type.includes("mp4") ? ".mp4" : ".webm")).toLowerCase();
-  const originalPath = path.join(dir, `${takeId}-original${ext}`);
+  let originalPath: string;
+  let fileName: string;
+  if (typeof uploadId === "string") {
+    // Chunked upload already assembled on disk; move it into the project.
+    let done: ReturnType<typeof takeCompletedUpload>;
+    try {
+      done = takeCompletedUpload(uploadId);
+    } catch (err) {
+      return badRequest(err instanceof Error ? err.message : String(err));
+    }
+    fileName = done.name;
+    const ext = (path.extname(done.name) || (done.type.includes("mp4") ? ".mp4" : ".webm")).toLowerCase();
+    originalPath = path.join(dir, `${takeId}-original${ext}`);
+    fs.renameSync(done.path, originalPath);
+  } else {
+    const f = file as File;
+    fileName = f.name;
+    const ext = (path.extname(f.name || "") || (f.type.includes("mp4") ? ".mp4" : ".webm")).toLowerCase();
+    originalPath = path.join(dir, `${takeId}-original${ext}`);
+    fs.writeFileSync(originalPath, Buffer.from(await f.arrayBuffer()));
+  }
+  void fileName;
   const finalPath = path.join(dir, `${takeId}.mp4`);
-  fs.writeFileSync(originalPath, Buffer.from(await file.arrayBuffer()));
 
   const count = project.takes.length + 1;
   const take: TakeRecording = {

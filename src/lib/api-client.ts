@@ -34,6 +34,44 @@ export async function api<T = unknown>(
   return data as T;
 }
 
+/**
+ * Upload a video in small chunks (each under 1 MB) so proxies with tiny body
+ * limits never reject it. Resolves with an uploadId to pass instead of a file.
+ */
+export async function uploadVideoChunked(
+  file: Blob,
+  name: string,
+  onProgress?: (fraction: number) => void,
+): Promise<string> {
+  const init = await api<{ id: string; chunkBytes: number }>("/api/uploads", {
+    method: "POST",
+    body: { name, type: file.type || "video/mp4", size: file.size },
+  });
+  const chunkBytes = init.chunkBytes || 900 * 1024;
+  let offset = 0;
+  while (offset < file.size) {
+    const end = Math.min(file.size, offset + chunkBytes);
+    const part = file.slice(offset, end);
+    let attempt = 0;
+    for (;;) {
+      try {
+        await api(`/api/uploads/${init.id}?offset=${offset}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/octet-stream" },
+          body: part,
+        });
+        break;
+      } catch (err) {
+        if (++attempt >= 3) throw err;
+        await new Promise((r) => setTimeout(r, 800 * attempt));
+      }
+    }
+    offset = end;
+    onProgress?.(offset / file.size);
+  }
+  return init.id;
+}
+
 export function mediaUrl(relative: string | null | undefined): string | null {
   if (!relative) return null;
   return "/api/media/" + relative.split("/").map(encodeURIComponent).join("/");

@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { ArrowRight } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
-import { api, pollJob } from "@/lib/api-client";
+import { api, pollJob, uploadVideoChunked } from "@/lib/api-client";
 import { Button, Card, Spinner, useToast } from "@/components/ui";
 import { useProject } from "@/components/shell/AppContext";
 import { StageHeader } from "@/components/shell/StageHeader";
@@ -32,8 +32,9 @@ export function ShootingWorkspace({ id }: { id: string }) {
     async (blob: Blob, filename: string, source: "recorded" | "uploaded") => {
       setUploading(true);
       try {
+        const uploadId = await uploadVideoChunked(blob, filename);
         const form = new FormData();
-        form.append("file", blob, filename);
+        form.append("uploadId", uploadId);
         form.append("source", source);
         const res = await api<{ take: { id: string }; job: { id: string } }>(`/api/projects/${id}/takes`, { method: "POST", body: form });
         await reload();

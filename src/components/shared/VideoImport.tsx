@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { FileVideo, UploadCloud, Wand2 } from "lucide-react";
 import { useRef, useState } from "react";
-import { api, pollJob } from "@/lib/api-client";
+import { api, pollJob, uploadVideoChunked } from "@/lib/api-client";
 import { Button, ProgressBar, cx, useToast } from "@/components/ui";
 import { useApp } from "@/components/shell/AppContext";
 import type { Project } from "@/lib/types";
@@ -33,8 +33,9 @@ export function VideoImport({ target, accent }: { target: "editing" | "uploading
     setBusy(true);
     setProgress({ value: 0.02, message: "Uploading video" });
     try {
+      const uploadId = await uploadVideoChunked(file, file.name, (f) => setProgress({ value: f * 0.2, message: `Uploading video ${Math.round(f * 100)}%` }));
       const form = new FormData();
-      form.append("file", file, file.name);
+      form.append("uploadId", uploadId);
       form.append("target", target);
       if (script.trim()) form.append("script", script.trim());
       const res = await api<{ project: Project; job: { id: string } }>("/api/projects/import", { method: "POST", body: form });
