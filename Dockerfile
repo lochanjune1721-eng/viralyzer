@@ -1,6 +1,6 @@
 # Viralyzer: Next.js app + FFmpeg (with libass for burned-in captions).
 FROM node:22-bookworm-slim AS base
-RUN apt-get update && apt-get install -y --no-install-recommends ffmpeg fontconfig ca-certificates && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y --no-install-recommends ffmpeg fontconfig ca-certificates python3 python3-pip && rm -rf /var/lib/apt/lists/*
 
 FROM base AS deps
 WORKDIR /app
@@ -22,6 +22,8 @@ COPY --from=build /app/.next/standalone ./
 COPY --from=build /app/.next/static ./.next/static
 COPY --from=build /app/public ./public
 COPY --from=build /app/assets ./assets
+COPY --from=build /app/vendor ./vendor
+RUN pip3 install --no-cache-dir --break-system-packages -r vendor/video-use/requirements.txt
 RUN mkdir -p /data/db /data/storage
 VOLUME ["/data"]
 EXPOSE 3000

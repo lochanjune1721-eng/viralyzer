@@ -14,6 +14,7 @@ import { CutsList } from "./CutsList";
 import { FormatPicker, FORMATS } from "./FormatPicker";
 import { CutPreview } from "./Timeline";
 import { VisualsEditor } from "./VisualsEditor";
+import { VideoUsePanel } from "./VideoUsePanel";
 
 export function EditingWorkspace({ id }: { id: string }) {
   const router = useRouter();
@@ -225,12 +226,16 @@ export function EditingWorkspace({ id }: { id: string }) {
             </div>
           </div>
 
+          <Card className="mt-5 p-4">
+            <VideoUsePanel project={project} onProject={setProject} />
+          </Card>
+
           <Card className="mt-5 p-5">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
-                <div className="text-sm font-medium">Export</div>
+                <div className="text-sm font-medium">Export with a layout</div>
                 <div className="text-xs text-muted">
-                  {FORMATS.find((f) => f.id === edit.format)?.name} · {edit.aspect} · {edit.captionStyle} captions · rendered server-side with FFmpeg
+                  {FORMATS.find((f) => f.id === edit.format)?.name} · {edit.aspect} · {edit.captionStyle} captions · our own FFmpeg renderer (split screen, overlays, motion design)
                 </div>
               </div>
               <Button variant="primary" onClick={render} loading={!!renderProgress || edit.render?.status === "running"}>

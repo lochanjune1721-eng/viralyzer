@@ -12,6 +12,12 @@ An end-to-end web app for short-form video creators: **Ideation â†’ Scripting â†
 | **Editing** | Automatic first pass: joins the selected takes, transcribes with word timestamps, detects **repeated attempts** (fuzzy match against the script and neighbouring lines, best take chosen by script similarity / fillers / hesitation / completeness), removes fillers, long pauses and dead air, then shows a timeline where any single cut can be undone. Choose a format: **split screen** (auto-sourced images per concept, replaceable), **full-frame with overlays**, **captions only**, or **motion design** (kinetic key phrases + lower third). Captions are always on, word-synced, four style presets, editable text. Export 9:16 / 1:1 / 16:9 with FFmpeg (noise reduction + loudness normalisation) and live progress. |
 | **Uploading** | Connect TikTok, Instagram Reels, YouTube Shorts, X and LinkedIn via OAuth (or one Ayrshare key). LLM-drafted caption, hashtags and title; checkbox per platform; **Post everywhere**; schedule for later; per-platform success/failure with retry and stored post links. |
 
+## Edit by conversation (video-use engine)
+
+The Editing stage embeds the open-source [browser-use/video-use](https://github.com/browser-use/video-use) engine (vendored under `vendor/video-use`, MIT). After the automatic cleanup pass you can talk to the editor: "cut it down to 45 seconds", "keep only the hook and the payoff", "warm cinematic grade", "drop the part about pricing". It reads the word-timed transcript, proposes a plan and an EDL, you confirm, and it renders through `render.py`: per-segment extraction with colour grade and 30 ms audio fades, lossless concat, 2-word uppercase subtitles burned last, and social loudness normalisation. Every cut boundary can be inspected with the filmstrip-plus-waveform timeline view.
+
+Requirements: Python 3.10+ with `pip install -r vendor/video-use/requirements.txt` (the Docker image does this). `ELEVENLABS_API_KEY` enables Scribe transcription, the engine's native word-level layer; `DEEPSEEK_API_KEY` enables the real conversation (without it only direct instructions are understood).
+
 ## Every stage works on its own
 
 The five stages connect, but none of them requires the others:

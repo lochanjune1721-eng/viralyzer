@@ -17,6 +17,7 @@ export const env = {
     openaiKey: process.env.OPENAI_API_KEY || "",
     groqKey: process.env.GROQ_API_KEY || "",
     deepgramKey: process.env.DEEPGRAM_API_KEY || "",
+    elevenlabsKey: process.env.ELEVENLABS_API_KEY || "",
   },
   images: {
     pexels: process.env.PEXELS_API_KEY || "",

@@ -124,10 +124,48 @@ export interface CaptionWord {
 }
 
 export type CaptionStyleId = "bold" | "boxed" | "minimal" | "neon";
-export type FormatId = "split" | "overlay" | "captions" | "motion";
+export type FormatId = "split" | "overlay" | "captions" | "motion" | "videouse";
 export type AspectId = "9:16" | "1:1" | "16:9";
 
+// ---------- video-use (conversational editing engine) ----------
+export interface EdlRange {
+  source: string;
+  start: number;
+  end: number;
+  beat?: string;
+  quote?: string;
+  reason?: string;
+}
+
+export interface Edl {
+  version: 1;
+  sources: Record<string, string>;
+  ranges: EdlRange[];
+  grade: string; // preset name, "auto", "none" or a raw ffmpeg filter
+  subtitles: "bold-overlay" | "none";
+  total_duration_s: number;
+}
+
+export interface VideoUseMessage {
+  id: string;
+  role: "user" | "assistant";
+  content: string;
+  strategy?: string | null;
+  edl?: Edl | null;
+  applied?: boolean;
+  createdAt: string;
+}
+
+export interface VideoUseState {
+  messages: VideoUseMessage[];
+  edl: Edl | null; // the confirmed EDL
+  grade: string;
+  subtitleStyle: "bold-overlay" | "none";
+  render?: { status: "idle" | "running" | "done" | "failed"; jobId?: string; file?: string; preview?: boolean; durationSec?: number; error?: string; log?: string };
+}
+
 export interface EditState {
+  videouse?: VideoUseState;
   sourceFile?: string; // storage-relative path of the concatenated, normalized source
   sourceDuration?: number;
   transcript?: Transcript;

@@ -6,6 +6,7 @@ import { llmAvailable } from "@/lib/llm/client";
 import { detectProvider } from "@/lib/editing/transcribe";
 import { env } from "@/lib/env";
 import { videoCapability } from "@/lib/media/capabilities";
+import { videoUseCapability } from "@/lib/videouse";
 
 export async function GET() {
   const user = await getCurrentUser();
@@ -17,6 +18,7 @@ export async function GET() {
       transcription: detectProvider(),
       publishProvider: env.publish.provider,
       video: videoCapability(),
+      videouse: videoCapability().ok ? videoUseCapability() : { ok: false, reason: videoCapability().reason },
     },
   });
 }

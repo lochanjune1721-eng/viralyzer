@@ -9,6 +9,7 @@ export interface Capabilities {
   transcription: string;
   publishProvider: string;
   video: { ok: boolean; reason: string | null; host: "serverless" | "server" };
+  videouse: { ok: boolean; reason: string | null };
 }
 
 interface AppState {

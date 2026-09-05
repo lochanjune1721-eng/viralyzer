@@ -6,11 +6,12 @@ import type { Transcript, TranscriptWord } from "@/lib/types";
 // (OpenAI, Groq) or Deepgram. With no key configured, "mock" aligns the script
 // text evenly across the footage so the rest of the pipeline stays usable.
 
-export type TranscribeProvider = "openai" | "groq" | "deepgram" | "mock";
+export type TranscribeProvider = "elevenlabs" | "openai" | "groq" | "deepgram" | "mock";
 
 export function detectProvider(): TranscribeProvider {
   const forced = env.transcribe.provider as TranscribeProvider | "";
   if (forced) return forced;
+  if (env.transcribe.elevenlabsKey) return "elevenlabs";
   if (env.transcribe.openaiKey) return "openai";
   if (env.transcribe.groqKey) return "groq";
   if (env.transcribe.deepgramKey) return "deepgram";
@@ -23,6 +24,8 @@ export async function transcribe(
 ): Promise<Transcript> {
   const provider = detectProvider();
   switch (provider) {
+    case "elevenlabs":
+      return scribe(wavPath, opts);
     case "openai":
       return whisperCompatible(wavPath, "https://api.openai.com/v1", env.transcribe.openaiKey, "whisper-1", opts, "openai");
     case "groq":
@@ -81,6 +84,40 @@ async function whisperCompatible(
   }
   words = punctuateFromText(words, data.text || "");
   return { words, text: data.text || words.map((w) => w.text).join(" "), provider, language: data.language };
+}
+
+/**
+ * ElevenLabs Scribe: verbatim word-level timestamps with audio events, the
+ * transcription layer video-use is built on. Fillers are kept (editorial signal).
+ */
+async function scribe(wavPath: string, opts: { language?: string }): Promise<Transcript> {
+  const form = new FormData();
+  form.append("file", new Blob([fs.readFileSync(wavPath)], { type: "audio/wav" }), "audio.wav");
+  form.append("model_id", "scribe_v1");
+  form.append("diarize", "true");
+  form.append("tag_audio_events", "true");
+  form.append("timestamps_granularity", "word");
+  if (opts.language) form.append("language_code", opts.language);
+  const res = await fetch("https://api.elevenlabs.io/v1/speech-to-text", {
+    method: "POST",
+    headers: { "xi-api-key": env.transcribe.elevenlabsKey },
+    body: form,
+  });
+  if (!res.ok) throw new Error(`ElevenLabs Scribe failed (${res.status}): ${(await res.text()).slice(0, 400)}`);
+  const data = (await res.json()) as {
+    text?: string;
+    language_code?: string;
+    words?: Array<{ type?: string; text: string; start?: number; end?: number }>;
+  };
+  const words: TranscriptWord[] = [];
+  for (const w of data.words || []) {
+    if (w.type && w.type !== "word") continue; // skip spacing; audio events are not spoken words
+    if (w.start == null || w.end == null) continue;
+    const text = w.text.trim();
+    if (!text) continue;
+    words.push({ text, start: Number(w.start), end: Number(w.end) });
+  }
+  return { words, text: data.text || words.map((w) => w.text).join(" "), provider: "elevenlabs", language: data.language_code };
 }
 
 async function deepgram(wavPath: string, opts: { language?: string; scriptHint?: string }): Promise<Transcript> {
