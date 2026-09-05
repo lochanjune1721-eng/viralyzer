@@ -1,0 +1,102 @@
+@import "tailwindcss";
+
+/* Warm, quiet palette in the spirit of the Claude interface. */
+:root {
+  --bg: #f6f4f0;
+  --surface: #ffffff;
+  --surface-2: #efece6;
+  --border: #e4dfd7;
+  --fg: #1f1d1a;
+  --muted: #6f6a62;
+  --accent: #d0704f;
+  --accent-hover: #b95f41;
+  --accent-fg: #ffffff;
+  --success: #2f9e6b;
+  --warning: #d69a2a;
+  --danger: #d1453b;
+  --cut-retake: #d1453b;
+  --cut-filler: #d69a2a;
+  --cut-pause: #5b7fd6;
+  --cut-lead: #8a8378;
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #1a1918;
+    --surface: #232120;
+    --surface-2: #2c2a28;
+    --border: #383531;
+    --fg: #ebe7e1;
+    --muted: #9d968c;
+    --accent: #e0876a;
+    --accent-hover: #ea9a80;
+    --accent-fg: #1a1918;
+    --success: #4cc08a;
+    --warning: #e2b04e;
+    --danger: #e56a5f;
+    --cut-retake: #e56a5f;
+    --cut-filler: #e2b04e;
+    --cut-pause: #7c9bea;
+    --cut-lead: #7f786e;
+    color-scheme: dark;
+  }
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-border: var(--border);
+  --color-fg: var(--fg);
+  --color-muted: var(--muted);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-fg: var(--accent-fg);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-danger: var(--danger);
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+}
+
+html,
+body {
+  height: 100%;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-sans);
+  -webkit-tap-highlight-color: transparent;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--accent) 30%, transparent);
+}
+
+.scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.fade-up {
+  animation: fade-up 0.25s ease-out both;
+}
+
+input[type="range"] {
+  accent-color: var(--accent);
+}
+
+/* Safe-area aware bottom tab bar on phones */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}

@@ -1,0 +1,16 @@
+services:
+  viralyzer:
+    build: .
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+    environment:
+      DATA_DIR: /data/db
+      STORAGE_DIR: /data/storage
+    volumes:
+      - viralyzer-data:/data
+    restart: unless-stopped
+
+volumes:
+  viralyzer-data:
