@@ -4,7 +4,7 @@ import { videoCapability } from "@/lib/media/capabilities";
 import { initUpload } from "@/lib/uploads";
 
 // Start a chunked upload. Returns the upload id and the chunk size clients should use.
-const CHUNK_BYTES = 900 * 1024; // stays under the 1 MB body limit of most proxies
+const CHUNK_BYTES = 512 * 1024; // well under the 1 MB body limit of most proxies; the client shrinks further on 413
 
 export async function POST(req: Request) {
   await getCurrentUser();

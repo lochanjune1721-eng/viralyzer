@@ -47,12 +47,14 @@ export async function uploadVideoChunked(
     method: "POST",
     body: { name, type: file.type || "video/mp4", size: file.size },
   });
-  const chunkBytes = init.chunkBytes || 900 * 1024;
+  let chunkBytes = init.chunkBytes || 512 * 1024;
+  const MIN_CHUNK = 32 * 1024;
   let offset = 0;
   while (offset < file.size) {
     const end = Math.min(file.size, offset + chunkBytes);
     const part = file.slice(offset, end);
     let attempt = 0;
+    let sent = false;
     for (;;) {
       try {
         await api(`/api/uploads/${init.id}?offset=${offset}`, {
@@ -60,12 +62,19 @@ export async function uploadVideoChunked(
           headers: { "Content-Type": "application/octet-stream" },
           body: part,
         });
+        sent = true;
         break;
       } catch (err) {
+        // A proxy in front of the app rejected the body size: shrink and resend this piece.
+        if (err instanceof ApiError && err.status === 413 && chunkBytes > MIN_CHUNK) {
+          chunkBytes = Math.max(MIN_CHUNK, Math.floor(chunkBytes / 2));
+          break;
+        }
         if (++attempt >= 3) throw err;
         await new Promise((r) => setTimeout(r, 800 * attempt));
       }
     }
+    if (!sent) continue; // retry the same offset with the smaller size
     offset = end;
     onProgress?.(offset / file.size);
   }
