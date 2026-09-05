@@ -16,7 +16,7 @@ RUN npm run build
 
 FROM base AS runner
 WORKDIR /app
-ENV NODE_ENV=production NEXT_TELEMETRY_DISABLED=1 PORT=3000 \
+ENV NODE_ENV=production NEXT_TELEMETRY_DISABLED=1 PORT=3000 HOSTNAME=0.0.0.0 \
     DATA_DIR=/data/db STORAGE_DIR=/data/storage NODE_OPTIONS=--no-warnings=ExperimentalWarning
 COPY --from=build /app/.next/standalone ./
 COPY --from=build /app/.next/static ./.next/static
@@ -25,6 +25,5 @@ COPY --from=build /app/assets ./assets
 COPY --from=build /app/vendor ./vendor
 RUN pip3 install --no-cache-dir --break-system-packages -r vendor/video-use/requirements.txt
 RUN mkdir -p /data/db /data/storage
-VOLUME ["/data"]
 EXPOSE 3000
 CMD ["node", "server.js"]
