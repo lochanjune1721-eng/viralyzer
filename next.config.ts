@@ -1,9 +1,12 @@
 import type { NextConfig } from "next";
 
+// Vercel's builder is incompatible with the standalone output (it expects the
+// default trace files), so standalone is only used for the Docker image.
+const onVercel = !!process.env.VERCEL;
+
 const nextConfig: NextConfig = {
-  // Self-contained server bundle for the Docker image.
-  output: "standalone",
-  // Bundled caption fonts must ship with the standalone server output.
+  output: onVercel ? undefined : "standalone",
+  // Bundled caption fonts must ship with the server output.
   outputFileTracingIncludes: {
     "/api/**": ["./assets/**"],
   },

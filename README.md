@@ -30,6 +30,12 @@ Phones only expose the camera on HTTPS. For testing the Shooting stage on your p
 docker compose up --build   # ffmpeg + fonts included; data persists in the viralyzer-data volume
 ```
 
+### Hosting
+
+This app needs a **persistent Node server with ffmpeg**: takes are normalised, cleanup and renders run as background jobs in the server process, and media plus the SQLite database live on local disk. Any Docker host (Railway, Fly.io, Render, a VPS) works with the included `Dockerfile`.
+
+Vercel builds and serves the UI, ideation, scripting and account connections, but serverless functions have no ffmpeg, a read-only project directory (data falls back to `/tmp`, which is ephemeral) and no long-running background work, so the Shooting uploads, Editing pipeline and renders will not run there. `output: "standalone"` is automatically disabled on Vercel because its builder is incompatible with it.
+
 ### Keys (all optional, the app degrades gracefully)
 
 | Variable | Used for | Without it |

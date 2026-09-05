@@ -2,8 +2,10 @@ import path from "node:path";
 
 export const env = {
   publicBaseUrl: (process.env.PUBLIC_BASE_URL || "http://localhost:3000").replace(/\/$/, ""),
-  dataDir: path.resolve(process.env.DATA_DIR || "./data"),
-  storageDir: path.resolve(process.env.STORAGE_DIR || "./storage"),
+  // On serverless hosts the project directory is read-only; fall back to /tmp
+  // (ephemeral, see README "Hosting").
+  dataDir: path.resolve(process.env.DATA_DIR || (process.env.VERCEL ? "/tmp/viralyzer/data" : "./data")),
+  storageDir: path.resolve(process.env.STORAGE_DIR || (process.env.VERCEL ? "/tmp/viralyzer/storage" : "./storage")),
   appSecret: process.env.APP_SECRET || "dev-secret-change-me",
   llm: {
     apiKey: process.env.DEEPSEEK_API_KEY || process.env.LLM_API_KEY || "",
