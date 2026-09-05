@@ -9,6 +9,8 @@ import { StagePreview } from "@/components/shell/StagePreview";
 import { cx, Spinner } from "@/components/ui";
 import { STAGE_ORDER, type Stage } from "@/lib/types";
 import { IdeationForm } from "@/components/ideation/IdeationForm";
+import { ShootingStudio } from "@/components/shooting/ShootingStudio";
+import { VideoImport } from "@/components/shared/VideoImport";
 
 // A stage opened without a project: show what the workspace does, let the
 // user jump into a project that is at (or past) this stage, or start one.
@@ -27,7 +29,7 @@ export function StageIndex({ stage }: { stage: Stage }) {
         <div className="blob left-[5%] top-[-5%] h-72 w-72" style={{ background: meta.color }} />
         <div className="blob right-[5%] top-[30%] h-64 w-64" style={{ background: meta.color, animationDelay: "-9s", opacity: 0.25 }} />
       </div>
-      <div className="relative z-10 mx-auto w-full max-w-4xl px-4 py-8 md:py-12">
+      <div className={cx("relative z-10 mx-auto w-full px-4 py-8 md:py-12", stage === "shooting" ? "max-w-6xl" : "max-w-4xl")}>
         {/* stepper */}
         <div className="mb-8 flex items-center gap-1.5 overflow-x-auto text-xs">
           {STAGE_META.map((s, i) => (
@@ -44,14 +46,50 @@ export function StageIndex({ stage }: { stage: Stage }) {
           ))}
         </div>
 
+        {/* The stage's tool, usable on its own */}
+        {stage === "shooting" && (
+          <div className="mb-10">
+            <h1 className="text-2xl font-semibold tracking-tight md:text-3xl">
+              {meta.emoji} Teleprompter studio
+            </h1>
+            <p className="mb-4 mt-1 text-sm text-muted">Paste any script and record, no project needed. Change how the text comes in, drag it anywhere, set the pace.</p>
+            <ShootingStudio />
+          </div>
+        )}
+        {stage === "editing" && (
+          <div className="mb-10">
+            <h1 className="text-2xl font-semibold tracking-tight md:text-3xl">
+              {meta.emoji} Bring your own footage
+            </h1>
+            <p className="mb-4 mt-1 text-sm text-muted">Upload a raw take from any camera, paste the script you read, and we cut it down: best take of every line, no ums, no dead air.</p>
+            <VideoImport target="editing" accent={meta.color} />
+          </div>
+        )}
+        {stage === "uploading" && (
+          <div className="mb-10">
+            <h1 className="text-2xl font-semibold tracking-tight md:text-3xl">
+              {meta.emoji} Post a finished video
+            </h1>
+            <p className="mb-4 mt-1 text-sm text-muted">Already edited elsewhere? Drop the file, draft the caption, and post to every connected platform at once.</p>
+            <VideoImport target="uploading" accent={meta.color} />
+          </div>
+        )}
+        {stage === "scripting" && (
+          <div className="mb-10">
+            <h1 className="text-2xl font-semibold tracking-tight md:text-3xl">
+              {meta.emoji} Write a script from any idea
+            </h1>
+            <p className="mb-4 mt-1 text-sm text-muted">Type the topic, pick an angle on the next screen, and get three scripts with different hooks.</p>
+            <IdeationForm />
+          </div>
+        )}
+
         <div className="grid grid-cols-1 items-center gap-8 md:grid-cols-2">
           <div className="stagger">
             <div className="flex h-14 w-14 items-center justify-center rounded-2xl text-white shadow-lg" style={{ background: meta.color }}>
               <Icon className="h-7 w-7" />
             </div>
-            <h1 className="mt-4 text-3xl font-semibold tracking-tight md:text-4xl">
-              {meta.emoji} {meta.headline}
-            </h1>
+            <h2 className="mt-4 text-2xl font-semibold tracking-tight md:text-3xl">{meta.headline}</h2>
             <p className="mt-2 text-muted">
               Stage {idx + 1} of 5 · {meta.blurb}
             </p>

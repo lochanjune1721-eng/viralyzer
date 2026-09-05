@@ -70,6 +70,14 @@ export function UploadingWorkspace({ id }: { id: string }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [project, platforms]);
 
+  // Poll while an imported video is still being prepared.
+  const renderRunning = project?.edit.render?.status === "running";
+  useEffect(() => {
+    if (!renderRunning) return;
+    const t = setInterval(() => reload(), 2000);
+    return () => clearInterval(t);
+  }, [renderRunning, reload]);
+
   // Poll while something is publishing.
   useEffect(() => {
     if (!publications.some((p) => p.status === "publishing")) return;
@@ -170,7 +178,15 @@ export function UploadingWorkspace({ id }: { id: string }) {
       </Card>
 
       {!renderUrl ? (
-        <Card className="p-6 text-sm text-muted">No rendered video yet. Go back to Editing and export first.</Card>
+        <Card className="p-6 text-sm text-muted">
+          {renderRunning ? (
+            <span className="flex items-center gap-3"><Spinner /> Preparing your video…</span>
+          ) : project.edit.render?.status === "failed" ? (
+            <span className="text-danger">{project.edit.render.error}</span>
+          ) : (
+            "No rendered video yet. Go back to Editing and export first."
+          )}
+        </Card>
       ) : (
         <div className="grid grid-cols-1 gap-5 lg:grid-cols-[260px_1fr]">
           <Card className="p-3">

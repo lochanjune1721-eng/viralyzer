@@ -101,6 +101,19 @@ export function detectCuts(words: TranscriptWord[], duration: number, script: st
     }
   }
 
+  // ---- 1b. off-script speech (only when a script was provided) ----
+  // Short asides that match nothing in the script ("wait, let me start again",
+  // "is this recording?") are cut. Longer off-script passages are listed but
+  // left in, since they may be intentional ad-libs.
+  if (scriptSentences.length) {
+    for (const seg of segments) {
+      if (cutWords.has(seg.from) || seg.tokens.length < 2) continue;
+      if (seg.scriptSim >= 0.28) continue;
+      const short = seg.tokens.length <= 8 && seg.end - seg.start <= 5;
+      pushSegmentCutRaw(cuts, infos, seg, cutWords, short, `Not in the script: "${truncate(seg.text, 60)}"`);
+    }
+  }
+
   // ---- 2. fillers ----
   let fillers = 0;
   for (const w of infos) {
@@ -296,6 +309,22 @@ function pushSegmentCut(
       reason === "retake"
         ? `Repeated line: "${truncate(seg.text, 60)}" (kept the take at ${fmt(keep.start)})`
         : `Aborted attempt: "${truncate(seg.text, 60)}"`,
+  });
+}
+
+function pushSegmentCutRaw(cuts: EditCut[], infos: WordInfo[], seg: Segment, cutWords: Set<number>, enabled: boolean, detail: string): void {
+  const prev = infos[seg.from - 1];
+  const next = infos[seg.to + 1];
+  const gapBefore = prev ? seg.start - prev.end : 1;
+  const gapAfter = next ? next.start - seg.end : 1;
+  if (enabled) for (let k = seg.from; k <= seg.to; k++) cutWords.add(k);
+  cuts.push({
+    id: newId("c"),
+    start: seg.start - Math.min(0.15, Math.max(0, gapBefore) / 2),
+    end: seg.end + Math.min(0.15, Math.max(0, gapAfter) / 2),
+    reason: "off_script",
+    enabled,
+    detail,
   });
 }
 

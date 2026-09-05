@@ -12,6 +12,15 @@ An end-to-end web app for short-form video creators: **Ideation â†’ Scripting â†
 | **Editing** | Automatic first pass: joins the selected takes, transcribes with word timestamps, detects **repeated attempts** (fuzzy match against the script and neighbouring lines, best take chosen by script similarity / fillers / hesitation / completeness), removes fillers, long pauses and dead air, then shows a timeline where any single cut can be undone. Choose a format: **split screen** (auto-sourced images per concept, replaceable), **full-frame with overlays**, **captions only**, or **motion design** (kinetic key phrases + lower third). Captions are always on, word-synced, four style presets, editable text. Export 9:16 / 1:1 / 16:9 with FFmpeg (noise reduction + loudness normalisation) and live progress. |
 | **Uploading** | Connect TikTok, Instagram Reels, YouTube Shorts, X and LinkedIn via OAuth (or one Ayrshare key). LLM-drafted caption, hashtags and title; checkbox per platform; **Post everywhere**; schedule for later; per-platform success/failure with retry and stored post links. |
 
+## Every stage works on its own
+
+The five stages connect, but none of them requires the others:
+
+- **Scripting** starts from any idea typed on its page.
+- **Shooting** is a full teleprompter studio at `/shooting`: paste any script, choose how the text comes in (scroll up, ticker left or right, word by word), set the speed, size, colour, backdrop and countdown, drag the prompter anywhere on the frame, mirror or flip it for teleprompter glass, use voice pacing, turn the camera off for prompter-only use, go fullscreen, and drive it from the keyboard (space, arrows, R, M, F). Recordings can be downloaded or saved into a project for editing.
+- **Editing** accepts any raw video at `/editing` (a three-minute take from your phone is fine) plus the script you read. The cleanup pass transcribes it, keeps the best take of every line, flags off-script asides, and removes fillers, pauses and dead air before you pick a format.
+- **Uploading** accepts a finished video at `/uploading` and goes straight to captions, hashtags and one-click posting.
+
 ## Running it
 
 Requirements: Node 22.13+ (uses the built-in `node:sqlite`), **ffmpeg with libass** on `PATH` (or `FFMPEG_PATH`).

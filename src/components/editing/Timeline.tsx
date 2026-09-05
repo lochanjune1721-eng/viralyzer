@@ -7,6 +7,7 @@ import type { EditCut } from "@/lib/types";
 export const CUT_COLORS: Record<EditCut["reason"], string> = {
   retake: "var(--cut-retake)",
   false_start: "var(--cut-retake)",
+  off_script: "#b05cd6",
   filler: "var(--cut-filler)",
   pause: "var(--cut-pause)",
   lead: "var(--cut-lead)",
@@ -16,6 +17,7 @@ export const CUT_COLORS: Record<EditCut["reason"], string> = {
 export const CUT_LABELS: Record<EditCut["reason"], string> = {
   retake: "Repeated line",
   false_start: "False start",
+  off_script: "Off script",
   filler: "Filler",
   pause: "Long pause",
   lead: "Dead air (start)",
@@ -149,6 +151,7 @@ export function Timeline({
       </div>
       <div className="mt-1.5 flex flex-wrap gap-3 text-[11px] text-muted">
         <Legend color={CUT_COLORS.retake} label="Retakes / false starts" />
+        <Legend color={CUT_COLORS.off_script} label="Off script" />
         <Legend color={CUT_COLORS.filler} label="Fillers" />
         <Legend color={CUT_COLORS.pause} label="Pauses" />
         <Legend color={CUT_COLORS.lead} label="Dead air" />

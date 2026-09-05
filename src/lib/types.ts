@@ -93,7 +93,7 @@ export interface Transcript {
   language?: string;
 }
 
-export type CutReason = "retake" | "false_start" | "filler" | "pause" | "lead" | "tail";
+export type CutReason = "retake" | "false_start" | "off_script" | "filler" | "pause" | "lead" | "tail";
 
 export interface EditCut {
   id: string;

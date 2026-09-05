@@ -29,6 +29,14 @@ export function EditingWorkspace({ id }: { id: string }) {
   const edit = project?.edit;
   const analysis = edit?.analysis?.status || "idle";
   const readyTakes = project?.takes.filter((t) => t.status === "ready" && t.selected).length || 0;
+  const processingTakes = project?.takes.filter((t) => t.status === "processing").length || 0;
+
+  // Imported footage may still be normalising; poll until it is ready.
+  useEffect(() => {
+    if (!processingTakes) return;
+    const t = setInterval(() => reload(), 2000);
+    return () => clearInterval(t);
+  }, [processingTakes, reload]);
 
   const watchJob = useCallback(
     async (jobId: string, setter: typeof setAnalyzeProgress) => {
@@ -139,7 +147,14 @@ export function EditingWorkspace({ id }: { id: string }) {
     <div className="mx-auto w-full max-w-6xl px-3 py-4 md:px-4 md:py-6">
       <StageHeader stage="editing" project={project} />
 
-      {readyTakes === 0 && analysis !== "done" && (
+      {processingTakes > 0 && readyTakes === 0 && (
+        <Card className="mb-5 p-5">
+          <div className="flex items-center gap-3 text-sm">
+            <Spinner /> Preparing your video… the cleanup pass starts automatically when it is ready.
+          </div>
+        </Card>
+      )}
+      {readyTakes === 0 && processingTakes === 0 && analysis !== "done" && (
         <Card className="p-6 text-sm text-muted">No takes selected for editing yet. Go back to Shooting, record or upload a take, then send it here.</Card>
       )}
 
