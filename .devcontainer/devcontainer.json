@@ -1,0 +1,17 @@
+{
+  "name": "Viralyzer",
+  "image": "mcr.microsoft.com/devcontainers/javascript-node:22",
+  "features": {
+    "ghcr.io/devcontainers/features/python:1": { "version": "3.11" }
+  },
+  "hostRequirements": { "cpus": 2, "memory": "8gb" },
+  "onCreateCommand": "sudo apt-get update && sudo apt-get install -y --no-install-recommends ffmpeg fontconfig && npm install && pip3 install -r vendor/video-use/requirements.txt && cp -n .env.example .env || true",
+  "postStartCommand": "bash scripts/codespaces-start.sh",
+  "forwardPorts": [3000],
+  "portsAttributes": {
+    "3000": { "label": "Viralyzer app", "onAutoForward": "notify" }
+  },
+  "customizations": {
+    "codespaces": { "openFiles": ["README.md"] }
+  }
+}

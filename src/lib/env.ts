@@ -1,7 +1,16 @@
 import path from "node:path";
 
+function defaultPublicBaseUrl(): string {
+  if (process.env.PUBLIC_BASE_URL) return process.env.PUBLIC_BASE_URL;
+  // GitHub Codespaces forwards port 3000 at a predictable HTTPS address.
+  if (process.env.CODESPACE_NAME && process.env.GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN) {
+    return `https://${process.env.CODESPACE_NAME}-3000.${process.env.GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN}`;
+  }
+  return "http://localhost:3000";
+}
+
 export const env = {
-  publicBaseUrl: (process.env.PUBLIC_BASE_URL || "http://localhost:3000").replace(/\/$/, ""),
+  publicBaseUrl: defaultPublicBaseUrl().replace(/\/$/, ""),
   // On serverless hosts the project directory is read-only; fall back to /tmp
   // (ephemeral, see README "Hosting").
   dataDir: path.resolve(process.env.DATA_DIR || (process.env.VERCEL ? "/tmp/viralyzer/data" : "./data")),
