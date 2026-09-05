@@ -21,7 +21,9 @@ export function StageHeader({ stage, project, right }: { stage: Stage; project: 
               <ChevronLeft className="h-3.5 w-3.5" /> {prev.label}
             </Link>
           ) : null}
-          <span className={cx(prev && "before:mx-1 before:content-['·']")}>{STAGE_META[idx].label}</span>
+          <span className="rounded-full px-2 py-0.5 text-white" style={{ background: STAGE_META[idx].color }}>
+            {STAGE_META[idx].label}
+          </span>
           {next && canGoNext ? (
             <Link href={stageHref(next.id, project.id)} className="flex items-center gap-0.5 hover:text-fg">
               · {next.label} <ChevronRight className="h-3.5 w-3.5" />

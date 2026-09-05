@@ -10,7 +10,7 @@ import type { Project } from "@/lib/types";
 
 const URL_RE = /^(https?:\/\/|www\.)\S+$/i;
 
-export function IdeationForm({ autoFocus }: { autoFocus?: boolean }) {
+export function IdeationForm({ autoFocus, seed }: { autoFocus?: boolean; seed?: string }) {
   const router = useRouter();
   const toast = useToast();
   const { upsertProject } = useApp();
@@ -18,6 +18,12 @@ export function IdeationForm({ autoFocus }: { autoFocus?: boolean }) {
   const [reference, setReference] = useState("");
   const [showRef, setShowRef] = useState(false);
   const [busy, setBusy] = useState(false);
+  // A suggestion chip fills the box (seed carries a unique suffix so repeats re-apply).
+  const [appliedSeed, setAppliedSeed] = useState<string | undefined>(undefined);
+  if (seed && seed !== appliedSeed) {
+    setAppliedSeed(seed);
+    setIdea(seed.split("\u200b")[0]);
+  }
 
   async function submit(scriptIt: boolean) {
     let ideaText = idea.trim();
@@ -46,7 +52,7 @@ export function IdeationForm({ autoFocus }: { autoFocus?: boolean }) {
   }
 
   return (
-    <div className="rounded-2xl border border-border bg-surface p-3 shadow-sm">
+    <div className="rounded-2xl border border-border bg-surface/95 p-3 shadow-lg shadow-black/5 backdrop-blur transition-shadow focus-within:border-accent focus-within:shadow-[0_18px_40px_-20px_var(--accent)]">
       <textarea
         autoFocus={autoFocus}
         value={idea}

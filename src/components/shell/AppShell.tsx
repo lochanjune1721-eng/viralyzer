@@ -88,10 +88,11 @@ function SidebarContent({ compact }: { compact?: boolean }) {
     <div className="flex h-full flex-col">
       {!compact && (
         <div className="px-4 pt-5 pb-3">
-          <Link href="/" className="text-lg font-semibold tracking-tight">
+          <Link href="/" className="flex items-center gap-2 text-lg font-semibold tracking-tight">
+            <span className="brand-gradient inline-block h-6 w-6 rounded-lg shadow-md" />
             {APP_NAME}
           </Link>
-          <div className="text-xs text-muted">Idea → published, in one place</div>
+          <div className="mt-0.5 text-xs text-muted">Idea → published, in one place</div>
         </div>
       )}
       <nav className="px-2 pt-2">
@@ -105,11 +106,16 @@ function SidebarContent({ compact }: { compact?: boolean }) {
               key={s.id}
               href={href}
               className={cx(
-                "flex items-center gap-3 rounded-xl px-3 py-2 text-sm transition-colors",
+                "group flex items-center gap-3 rounded-xl px-2.5 py-1.5 text-sm transition-colors",
                 isActive ? "bg-surface-2 font-medium text-fg" : "text-muted hover:bg-surface-2 hover:text-fg",
               )}
             >
-              <Icon className="h-4 w-4" />
+              <span
+                className={cx("flex h-7 w-7 items-center justify-center rounded-lg transition-transform group-hover:scale-110", isActive ? "text-white shadow-md" : "bg-surface-2 text-muted group-hover:text-fg")}
+                style={isActive ? { background: s.color } : undefined}
+              >
+                <Icon className="h-4 w-4" />
+              </span>
               <span className="flex-1">{s.label}</span>
               {current && reached && <span className={cx("h-1.5 w-1.5 rounded-full", STAGE_COLORS[current.stage === "published" ? "published" : s.id])} />}
             </Link>
@@ -117,7 +123,7 @@ function SidebarContent({ compact }: { compact?: boolean }) {
         })}
       </nav>
       <div className="px-4 pt-4">
-        <Link href="/" className="flex items-center gap-2 rounded-xl border border-dashed border-border px-3 py-2 text-sm text-muted hover:border-accent hover:text-fg">
+        <Link href="/" className="lift flex items-center gap-2 rounded-xl border border-dashed border-border px-3 py-2 text-sm text-muted hover:border-accent hover:text-fg">
           <Plus className="h-4 w-4" /> New idea
         </Link>
       </div>
@@ -167,8 +173,10 @@ function MobileTabBar() {
         const Icon = s.icon;
         const isActive = active === s.id;
         return (
-          <Link key={s.id} href={stageHref(s.id, currentId)} className={cx("flex h-14 flex-col items-center justify-center gap-1 text-[10px]", isActive ? "text-accent" : "text-muted")}>
-            <Icon className="h-5 w-5" />
+          <Link key={s.id} href={stageHref(s.id, currentId)} className={cx("flex h-14 flex-col items-center justify-center gap-1 text-[10px]", isActive ? "text-fg" : "text-muted")} style={isActive ? { color: s.color } : undefined}>
+            <span className={cx("flex h-7 w-9 items-center justify-center rounded-full transition-colors")} style={isActive ? { background: `color-mix(in srgb, ${s.color} 18%, transparent)` } : undefined}>
+              <Icon className="h-5 w-5" />
+            </span>
             {s.label}
           </Link>
         );

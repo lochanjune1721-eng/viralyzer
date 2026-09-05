@@ -22,7 +22,7 @@ export function Button({
     "inline-flex items-center justify-center gap-2 rounded-xl font-medium transition-colors select-none disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/50";
   const sizes: Record<Size, string> = { sm: "h-8 px-3 text-sm", md: "h-10 px-4 text-sm", lg: "h-12 px-5 text-base" };
   const variants: Record<Variant, string> = {
-    primary: "bg-accent text-accent-fg hover:bg-accent-hover",
+    primary: "btn-primary-glow text-white",
     secondary: "bg-surface border border-border text-fg hover:bg-surface-2",
     ghost: "text-fg hover:bg-surface-2",
     danger: "bg-danger/10 text-danger hover:bg-danger/20",
@@ -45,8 +45,8 @@ export function Chip({
     <button
       type="button"
       className={cx(
-        "rounded-full border px-3.5 py-1.5 text-sm transition-colors",
-        active ? "border-accent bg-accent/10 text-fg" : "border-border bg-surface text-muted hover:text-fg hover:border-fg/30",
+        "rounded-full border px-3.5 py-1.5 text-sm transition-all hover:-translate-y-0.5",
+        active ? "border-accent bg-accent/15 text-fg shadow-[0_4px_14px_-6px_var(--accent)]" : "border-border bg-surface text-muted hover:text-fg hover:border-fg/30",
         className,
       )}
       {...rest}
