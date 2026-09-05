@@ -1,5 +1,6 @@
 import { getCurrentUser } from "@/lib/auth";
 import { getProject, saveProject, updateProject } from "@/lib/db/repo";
+import { videoCapability } from "@/lib/media/capabilities";
 import { badRequest, json, notFound } from "@/lib/http";
 import { startJob } from "@/lib/jobs";
 import { analyzeProject } from "@/lib/editing/pipeline";
@@ -10,6 +11,8 @@ export async function POST(_req: Request, ctx: RouteContext<"/api/projects/[id]/
   const { id } = await ctx.params;
   const project = getProject(id, user.id);
   if (!project) return notFound("Project not found");
+  const cap = videoCapability();
+  if (!cap.ok) return badRequest(cap.reason || "Video processing is unavailable on this server", { videoUnavailable: true });
   if (!project.takes.some((t) => t.status === "ready")) return badRequest("No ready takes to analyze.");
   if (project.edit.analysis?.status === "running") return json({ job: { id: project.edit.analysis.jobId } });
 

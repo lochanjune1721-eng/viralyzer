@@ -1,0 +1,25 @@
+# Fly.io: `fly launch --copy-config` then `fly volumes create viralyzer_data --size 20`
+app = "viralyzer"
+primary_region = "lhr"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  DATA_DIR = "/data/db"
+  STORAGE_DIR = "/data/storage"
+  PORT = "3000"
+
+[[mounts]]
+  source = "viralyzer_data"
+  destination = "/data"
+
+[http_service]
+  internal_port = 3000
+  force_https = true
+  auto_stop_machines = false
+  min_machines_running = 1
+
+[[vm]]
+  size = "shared-cpu-2x"
+  memory = "2gb"

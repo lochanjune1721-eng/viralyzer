@@ -8,6 +8,7 @@ export interface Capabilities {
   llm: string;
   transcription: string;
   publishProvider: string;
+  video: { ok: boolean; reason: string | null; host: "serverless" | "server" };
 }
 
 interface AppState {

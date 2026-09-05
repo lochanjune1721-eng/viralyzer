@@ -5,6 +5,7 @@ import { NICHES } from "@/lib/types";
 import { llmAvailable } from "@/lib/llm/client";
 import { detectProvider } from "@/lib/editing/transcribe";
 import { env } from "@/lib/env";
+import { videoCapability } from "@/lib/media/capabilities";
 
 export async function GET() {
   const user = await getCurrentUser();
@@ -15,6 +16,7 @@ export async function GET() {
       llm: llmAvailable() ? "deepseek" : "mock",
       transcription: detectProvider(),
       publishProvider: env.publish.provider,
+      video: videoCapability(),
     },
   });
 }

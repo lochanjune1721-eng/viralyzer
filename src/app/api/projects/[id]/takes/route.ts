@@ -3,6 +3,7 @@ import path from "node:path";
 import { getCurrentUser } from "@/lib/auth";
 import { getProject, saveProject, updateProject } from "@/lib/db/repo";
 import { badRequest, json, notFound } from "@/lib/http";
+import { videoCapability } from "@/lib/media/capabilities";
 import { newId, nowIso } from "@/lib/ids";
 import { startJob } from "@/lib/jobs";
 import { normalizeVideo, probe } from "@/lib/media/ffmpeg";
@@ -24,6 +25,8 @@ export async function POST(req: Request, ctx: RouteContext<"/api/projects/[id]/t
   const { id } = await ctx.params;
   const project = getProject(id, user.id);
   if (!project) return notFound("Project not found");
+  const cap = videoCapability();
+  if (!cap.ok) return badRequest(cap.reason || "Video processing is unavailable on this server", { videoUnavailable: true });
   const form = await req.formData();
   const file = form.get("file");
   if (!(file instanceof File)) return badRequest("Missing video file");

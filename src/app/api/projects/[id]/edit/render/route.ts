@@ -1,5 +1,6 @@
 import { getCurrentUser } from "@/lib/auth";
 import { getProject, saveProject, updateProject } from "@/lib/db/repo";
+import { videoCapability } from "@/lib/media/capabilities";
 import { badRequest, json, notFound, readJson } from "@/lib/http";
 import { startJob } from "@/lib/jobs";
 import { renderProject } from "@/lib/editing/pipeline";
@@ -10,6 +11,8 @@ export async function POST(req: Request, ctx: RouteContext<"/api/projects/[id]/e
   const { id } = await ctx.params;
   const project = getProject(id, user.id);
   if (!project) return notFound("Project not found");
+  const cap = videoCapability();
+  if (!cap.ok) return badRequest(cap.reason || "Video processing is unavailable on this server", { videoUnavailable: true });
   if (!project.edit.sourceFile || project.edit.analysis?.status !== "done") return badRequest("Run the cleanup pass first.");
   if (project.edit.render?.status === "running") return json({ job: { id: project.edit.render.jobId } });
   const body = await readJson<{ format?: FormatId; aspect?: AspectId }>(req);

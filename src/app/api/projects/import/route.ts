@@ -3,6 +3,7 @@ import path from "node:path";
 import { getCurrentUser } from "@/lib/auth";
 import { createProject, saveProject, updateProject } from "@/lib/db/repo";
 import { badRequest, json } from "@/lib/http";
+import { videoCapability } from "@/lib/media/capabilities";
 import { newId, nowIso } from "@/lib/ids";
 import { startJob } from "@/lib/jobs";
 import { normalizeVideo, probe } from "@/lib/media/ffmpeg";
@@ -14,6 +15,8 @@ import type { TakeRecording } from "@/lib/types";
 // Multipart: file, target=editing|uploading, script?, title?
 export async function POST(req: Request) {
   const user = await getCurrentUser();
+  const cap = videoCapability();
+  if (!cap.ok) return badRequest(cap.reason || "Video processing is unavailable on this server", { videoUnavailable: true });
   const form = await req.formData();
   const file = form.get("file");
   if (!(file instanceof File)) return badRequest("Missing video file");

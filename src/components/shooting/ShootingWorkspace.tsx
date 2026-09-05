@@ -7,6 +7,7 @@ import { api, pollJob } from "@/lib/api-client";
 import { Button, Card, Spinner, useToast } from "@/components/ui";
 import { useProject } from "@/components/shell/AppContext";
 import { StageHeader } from "@/components/shell/StageHeader";
+import { VideoUnavailableBanner } from "@/components/shell/VideoUnavailableBanner";
 import type { Project } from "@/lib/types";
 import { TakesList } from "./TakesList";
 import { Teleprompter, type RecordingResult } from "./Teleprompter";
@@ -89,6 +90,7 @@ export function ShootingWorkspace({ id }: { id: string }) {
           </Button>
         }
       />
+      <VideoUnavailableBanner />
       {!script ? (
         <Card className="p-6 text-sm text-muted">No script attached yet. Go back to Scripting and pick one.</Card>
       ) : (

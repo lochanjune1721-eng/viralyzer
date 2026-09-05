@@ -1,0 +1,26 @@
+# Render.com blueprint: one Docker web service with a persistent disk for the
+# SQLite database and media. Connect the repo, click "New Blueprint", done.
+services:
+  - type: web
+    name: viralyzer
+    runtime: docker
+    plan: starter
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /api/me
+    disk:
+      name: viralyzer-data
+      mountPath: /data
+      sizeGB: 20
+    envVars:
+      - key: DATA_DIR
+        value: /data/db
+      - key: STORAGE_DIR
+        value: /data/storage
+      - key: PUBLIC_BASE_URL
+        sync: false
+      - key: APP_SECRET
+        generateValue: true
+      - key: DEEPSEEK_API_KEY
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false

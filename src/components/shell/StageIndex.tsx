@@ -11,6 +11,7 @@ import { STAGE_ORDER, type Stage } from "@/lib/types";
 import { IdeationForm } from "@/components/ideation/IdeationForm";
 import { ShootingStudio } from "@/components/shooting/ShootingStudio";
 import { VideoImport } from "@/components/shared/VideoImport";
+import { VideoUnavailableBanner } from "@/components/shell/VideoUnavailableBanner";
 
 // A stage opened without a project: show what the workspace does, let the
 // user jump into a project that is at (or past) this stage, or start one.
@@ -46,6 +47,7 @@ export function StageIndex({ stage }: { stage: Stage }) {
           ))}
         </div>
 
+        {(stage === "shooting" || stage === "editing" || stage === "uploading") && <VideoUnavailableBanner />}
         {/* The stage's tool, usable on its own */}
         {stage === "shooting" && (
           <div className="mb-10">

@@ -13,7 +13,8 @@ import type { Project } from "@/lib/types";
 export function VideoImport({ target, accent }: { target: "editing" | "uploading"; accent: string }) {
   const router = useRouter();
   const toast = useToast();
-  const { upsertProject } = useApp();
+  const { upsertProject, capabilities } = useApp();
+  const videoOk = capabilities?.video.ok ?? true;
   const fileRef = useRef<HTMLInputElement>(null);
   const [file, setFile] = useState<File | null>(null);
   const [script, setScript] = useState("");
@@ -98,7 +99,7 @@ export function VideoImport({ target, accent }: { target: "editing" | "uploading
         <div className="text-xs text-muted">
           {target === "editing" ? "We transcribe it, keep your best take of every line, cut ums and pauses, then you pick a format." : "Skips editing. Goes straight to captions, hashtags and one-click posting."}
         </div>
-        <Button variant="primary" onClick={go} loading={busy} disabled={!file}>
+        <Button variant="primary" onClick={go} loading={busy} disabled={!file || !videoOk} title={videoOk ? undefined : capabilities?.video.reason || undefined}>
           <Wand2 className="h-4 w-4" /> {target === "editing" ? "Clean it up" : "Prepare to post"}
         </Button>
       </div>

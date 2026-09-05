@@ -33,6 +33,14 @@ npm run dev               # http://localhost:3000
 
 Phones only expose the camera on HTTPS. For testing the Shooting stage on your phone, run `npm run dev -- --experimental-https` or put the dev server behind a tunnel (ngrok, Cloudflare Tunnel) and set `PUBLIC_BASE_URL` to that URL.
 
+### One-click hosts that work (ffmpeg included)
+
+- **Render**: connect the repo, choose "Blueprint", `render.yaml` provisions the Docker service and a persistent disk.
+- **Railway**: "Deploy from GitHub", `railway.json` selects the Dockerfile; add a volume mounted at `/data`.
+- **Fly.io**: `fly launch --copy-config`, then `fly volumes create viralyzer_data --size 20` and `fly deploy`.
+
+Set `PUBLIC_BASE_URL` to the host's URL afterwards.
+
 ### Docker
 
 ```bash

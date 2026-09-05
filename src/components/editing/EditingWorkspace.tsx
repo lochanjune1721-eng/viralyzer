@@ -7,6 +7,7 @@ import { api, mediaUrl, pollJob } from "@/lib/api-client";
 import { Badge, Button, Card, ProgressBar, Spinner, useToast } from "@/components/ui";
 import { useApp, useProject } from "@/components/shell/AppContext";
 import { StageHeader } from "@/components/shell/StageHeader";
+import { VideoUnavailableBanner } from "@/components/shell/VideoUnavailableBanner";
 import type { AspectId, CaptionStyleId, CaptionWord, FormatId, Project } from "@/lib/types";
 import { CaptionsEditor } from "./CaptionsEditor";
 import { CutsList } from "./CutsList";
@@ -146,6 +147,7 @@ export function EditingWorkspace({ id }: { id: string }) {
   return (
     <div className="mx-auto w-full max-w-6xl px-3 py-4 md:px-4 md:py-6">
       <StageHeader stage="editing" project={project} />
+      <VideoUnavailableBanner />
 
       {processingTakes > 0 && readyTakes === 0 && (
         <Card className="mb-5 p-5">

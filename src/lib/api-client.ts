@@ -43,8 +43,11 @@ export async function pollJob(
   jobId: string,
   onProgress?: (job: { progress: number; message: string | null; status: string }) => void,
   intervalMs = 1200,
+  timeoutMs = 45 * 60 * 1000,
 ): Promise<{ status: string; result: unknown; error: string | null }> {
+  const started = Date.now();
   for (;;) {
+    if (Date.now() - started > timeoutMs) return { status: "failed", result: null, error: "The job did not finish in time. If this server cannot process video, see the banner at the top of the page." };
     const job = await api<{ status: string; progress: number; message: string | null; result: unknown; error: string | null }>(
       `/api/jobs/${jobId}`,
     );
