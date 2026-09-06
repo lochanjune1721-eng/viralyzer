@@ -15,7 +15,14 @@ export async function api<T = unknown>(
 ): Promise<T> {
   const headers: Record<string, string> = { ...(init.headers as Record<string, string>) };
   let body = init.body as BodyInit | undefined;
-  if (body && !(body instanceof FormData) && typeof body !== "string") {
+  const raw =
+    body instanceof FormData ||
+    body instanceof Blob ||
+    body instanceof ArrayBuffer ||
+    body instanceof URLSearchParams ||
+    ArrayBuffer.isView(body as ArrayBufferView) ||
+    typeof body === "string";
+  if (body && !raw) {
     headers["Content-Type"] = "application/json";
     body = JSON.stringify(body);
   }
