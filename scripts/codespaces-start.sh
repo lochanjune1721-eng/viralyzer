@@ -6,7 +6,14 @@ set -e
 cd "$(dirname "$0")/.."
 mkdir -p data storage
 
-if [ ! -f .next/BUILD_ID ] || [ -n "$(find src assets vendor package.json -newer .next/BUILD_ID -print -quit 2>/dev/null)" ]; then
+# Dependencies: install whenever package-lock.json changed since the last install
+# (a `git pull` that adds packages must not build against stale node_modules).
+if [ ! -d node_modules ] || [ package-lock.json -nt node_modules/.package-lock.json ] || [ ! -d node_modules/@remotion/renderer ]; then
+  echo "Installing dependencies…"
+  npm install --no-audit --no-fund
+fi
+
+if [ ! -f .next/BUILD_ID ] || [ -n "$(find src assets vendor remotion package.json -newer .next/BUILD_ID -print -quit 2>/dev/null)" ]; then
   echo "Building Viralyzer (first start takes a couple of minutes)…"
   npm run build
 fi

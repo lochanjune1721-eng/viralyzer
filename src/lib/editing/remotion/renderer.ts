@@ -1,5 +1,6 @@
 import { createHash } from "node:crypto";
 import fs from "node:fs";
+import { createRequire } from "node:module";
 import os from "node:os";
 import path from "node:path";
 import { env } from "@/lib/env";
@@ -56,16 +57,36 @@ function findBrowser(): string | null {
   return null;
 }
 
+// The Remotion packages are loaded at runtime from node_modules (never bundled by
+// Next), so a deployment without them still builds and runs; renders then use
+// the FFmpeg engine. `createRequire` keeps the bundler from resolving them statically.
+const nodeRequire = createRequire(path.join(process.cwd(), "package.json"));
+
+function remotionInstalled(): boolean {
+  try {
+    nodeRequire.resolve("@remotion/renderer");
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+async function loadRenderer(): Promise<typeof import("@remotion/renderer")> {
+  return import(/* webpackIgnore: true */ /* turbopackIgnore: true */ "@remotion/renderer");
+}
+
+async function loadBundler(): Promise<typeof import("@remotion/bundler")> {
+  return import(/* webpackIgnore: true */ /* turbopackIgnore: true */ "@remotion/bundler");
+}
+
 let capCache: RemotionCapability | null = null;
 
 export function remotionCapability(): RemotionCapability {
   if (capCache?.ok) return capCache;
   if (process.env.REMOTION_DISABLE === "1") return { ok: false, reason: "Remotion disabled with REMOTION_DISABLE=1", browser: null };
   if (!fs.existsSync(path.join(REMOTION_DIR, "index.ts"))) return { ok: false, reason: "remotion/ compositions are missing from this deployment", browser: null };
-  try {
-    require.resolve("@remotion/renderer");
-  } catch {
-    return { ok: false, reason: "@remotion/renderer is not installed", browser: null };
+  if (!remotionInstalled()) {
+    return { ok: false, reason: "@remotion/renderer is not installed. Run `npm install` and restart.", browser: null };
   }
   const browser = findBrowser();
   if (!browser) {
@@ -114,7 +135,7 @@ export async function ensureBundle(onProgress?: (msg: string) => void): Promise<
   if (bundlePromise) return bundlePromise;
   bundlePromise = (async () => {
     onProgress?.("Bundling Remotion compositions (first time only)");
-    const { bundle } = await import("@remotion/bundler");
+    const { bundle } = await loadBundler();
     fs.mkdirSync(root, { recursive: true });
     await bundle({
       entryPoint: path.join(REMOTION_DIR, "index.ts"),
@@ -173,7 +194,7 @@ export async function renderWithRemotion(input: RemotionRenderInput): Promise<vo
   });
   const props: EditCompositionProps = { ...input.props, videoSrc: `${mediaRel}/clean.mp4`, visuals };
 
-  const { renderMedia, selectComposition } = await import("@remotion/renderer");
+  const { renderMedia, selectComposition } = await loadRenderer();
   const videoOnly = input.outPath.replace(/\.mp4$/, ".video.mp4");
   try {
     input.onProgress?.(0.05, "Preparing composition");

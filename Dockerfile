@@ -25,12 +25,20 @@ RUN npm run build
 RUN npx remotion browser ensure || echo "Chrome Headless Shell download failed; will use apt chromium"
 RUN REMOTION_BUNDLE_DIR=/app/remotion-bundle npx tsx scripts/remotion-bundle.ts
 
+# Production node_modules (the Remotion packages are loaded at runtime, outside the
+# Next bundle, so the traced standalone subset is not enough on its own).
+FROM base AS prod-deps
+WORKDIR /app
+COPY package.json package-lock.json ./
+RUN npm ci --omit=dev --no-audit --no-fund
+
 FROM base AS runner
 WORKDIR /app
 ENV NODE_ENV=production NEXT_TELEMETRY_DISABLED=1 PORT=3000 HOSTNAME=0.0.0.0 \
     DATA_DIR=/data/db STORAGE_DIR=/data/storage NODE_OPTIONS=--no-warnings=ExperimentalWarning \
     REMOTION_BUNDLE_DIR=/app/remotion-bundle
 COPY --from=build /app/.next/standalone ./
+COPY --from=prod-deps /app/node_modules ./node_modules
 COPY --from=build /app/.next/static ./.next/static
 COPY --from=build /app/public ./public
 COPY --from=build /app/assets ./assets
