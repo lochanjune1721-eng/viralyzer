@@ -11,9 +11,23 @@ if [ ! -f .next/BUILD_ID ] || [ -n "$(find src assets vendor package.json -newer
   npm run build
 fi
 
+# Stop whatever is holding port 3000 (the `next start` launcher AND its next-server child).
 pkill -f "next start" 2>/dev/null || true
+pkill -f "next-server" 2>/dev/null || true
 pkill -f "cloudflared tunnel" 2>/dev/null || true
-sleep 1
+for i in $(seq 1 15); do
+  if ! (command -v fuser >/dev/null && fuser 3000/tcp >/dev/null 2>&1) && ! (command -v lsof >/dev/null && lsof -iTCP:3000 -sTCP:LISTEN >/dev/null 2>&1); then break; fi
+  command -v fuser >/dev/null && fuser -k 3000/tcp >/dev/null 2>&1 || true
+  sleep 1
+done
+
+# Python deps for the video-use engine (conversational editing).
+PY=$(command -v python3 || command -v python || true)
+if [ -n "$PY" ] && ! "$PY" -c "import requests, numpy, PIL" >/dev/null 2>&1; then
+  echo "Installing Python packages for the editing engine…"
+  "$PY" -m pip install -q -r vendor/video-use/requirements.txt 2>/dev/null || "$PY" -m pip install -q --break-system-packages -r vendor/video-use/requirements.txt || true
+fi
+export PYTHON_PATH="$PY"
 
 # 1. Tunnel first, so the app can learn its public address.
 echo "Opening a public tunnel…"
@@ -33,10 +47,17 @@ else
 fi
 nohup npm start > /tmp/viralyzer.log 2>&1 &
 
+STARTED=""
 for i in $(seq 1 60); do
-  curl -sf -o /dev/null http://localhost:3000/api/me && break
+  if curl -sf -o /dev/null http://localhost:3000/api/me; then STARTED=1; break; fi
   sleep 1
 done
+if [ -z "$STARTED" ]; then
+  echo "The app did not start. Last log lines:"; tail -20 /tmp/viralyzer.log; exit 1
+fi
+if grep -q EADDRINUSE /tmp/viralyzer.log; then
+  echo "Port 3000 was still busy; the app you see may be an old process. Run this script again."; exit 1
+fi
 
 echo
 echo "=================================================================="

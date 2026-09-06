@@ -15,7 +15,24 @@ const HELPERS = path.join(VIDEOUSE_DIR, "helpers");
 export const GRADE_PRESETS = ["auto", "subtle", "neutral_punch", "warm_cinematic", "none"] as const;
 export const SUBTITLE_STYLES = ["bold-overlay", "none"] as const;
 
+let resolvedPython: string | null = null;
+
+/** First interpreter that has the engine's dependencies. Cached per process. */
 export function pythonPath(): string {
+  if (resolvedPython) return resolvedPython;
+  const candidates = [
+    process.env.PYTHON_PATH,
+    "python3",
+    "python",
+    "/usr/local/python/current/bin/python3",
+    "/usr/bin/python3",
+    "/usr/local/bin/python3",
+    "/opt/homebrew/bin/python3",
+  ].filter((c): c is string => !!c);
+  for (const c of candidates) {
+    const r = spawnSync(c, ["-c", "import requests, numpy, PIL"], { encoding: "utf8", timeout: 20000 });
+    if (!r.error && r.status === 0) return (resolvedPython = c);
+  }
   return process.env.PYTHON_PATH || "python3";
 }
 
@@ -32,12 +49,12 @@ export function videoUseCapability(): VideoUseCapability {
   if (!fs.existsSync(path.join(HELPERS, "render.py"))) {
     return (capCache = { ok: false, reason: "vendor/video-use helpers are missing from this deployment." });
   }
-  const res = spawnSync(pythonPath(), ["-c", "import requests, numpy, PIL"], { encoding: "utf8", timeout: 20000 });
+  const py = pythonPath();
+  const res = spawnSync(py, ["-c", "import requests, numpy, PIL"], { encoding: "utf8", timeout: 20000 });
   if (res.error || res.status !== 0) {
-    return (capCache = {
-      ok: false,
-      reason: `Python 3 with requests, numpy and pillow is required for the video-use engine (pip install -r vendor/video-use/requirements.txt). ${res.error ? res.error.message : (res.stderr || "").trim().split("\n").pop() || ""}`.trim(),
-    });
+    const detail = res.error ? res.error.message : (res.stderr || "").trim().split("\n").pop() || "";
+    // Do not cache a failure: the packages may be installed a moment later.
+    return { ok: false, reason: `Python 3 with requests, numpy and pillow is required for the video-use engine. Run: pip install -r vendor/video-use/requirements.txt (tried ${py}: ${detail})` };
   }
   return (capCache = { ok: true, reason: null });
 }
