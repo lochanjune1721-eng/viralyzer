@@ -13,7 +13,8 @@ export async function PATCH(req: Request, ctx: RouteContext<"/api/projects/[id]/
   const { id } = await ctx.params;
   const project = getProject(id, user.id);
   if (!project) return notFound("Project not found");
-  const body = await readJson<{ format?: FormatId; aspect?: AspectId; captionStyle?: CaptionStyleId; captions?: CaptionWord[]; keyPhrases?: string[] }>(req);
+  const body = await readJson<{ format?: FormatId; aspect?: AspectId; captionStyle?: CaptionStyleId; captions?: CaptionWord[]; keyPhrases?: string[]; facePosition?: "top" | "bottom" }>(req);
+  if (body.facePosition === "top" || body.facePosition === "bottom") project.edit.facePosition = body.facePosition;
   if (body.format) {
     if (!FORMATS.includes(body.format)) return badRequest("Unknown format");
     project.edit.format = body.format;

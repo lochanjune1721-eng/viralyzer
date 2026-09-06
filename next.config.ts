@@ -12,8 +12,9 @@ const nextConfig: NextConfig = {
   allowedDevOrigins: ["*.app.github.dev", "*.trycloudflare.com", "*.ngrok-free.app"],
   // Bundled caption fonts must ship with the server output.
   outputFileTracingIncludes: {
-    "/api/**": ["./assets/**"],
+    "/api/**": ["./assets/**", "./remotion/**", "./node_modules/@remotion/compositor-linux-x64-gnu/**", "./node_modules/@remotion/compositor-linux-arm64-gnu/**"],
   },
+  serverExternalPackages: ["remotion", "@remotion/renderer", "@remotion/bundler", "@remotion/fonts"],
 };
 
 export default nextConfig;

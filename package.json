@@ -7,15 +7,22 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "tunnel": "npx --yes cloudflared tunnel --url http://localhost:3000"
+    "tunnel": "npx --yes cloudflared tunnel --url http://localhost:3000",
+    "remotion:browser": "remotion browser ensure",
+    "remotion:bundle": "tsx scripts/remotion-bundle.ts"
   },
   "dependencies": {
+    "@remotion/bundler": "^4.0.521",
+    "@remotion/fonts": "^4.0.521",
+    "@remotion/renderer": "^4.0.521",
     "lucide-react": "^1.41.0",
     "next": "16.3.4",
     "react": "19.2.8",
-    "react-dom": "19.2.8"
+    "react-dom": "19.2.8",
+    "remotion": "^4.0.521"
   },
   "devDependencies": {
+    "@remotion/cli": "^4.0.521",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^22.20.1",
     "@types/react": "^19",

@@ -164,8 +164,50 @@ export interface VideoUseState {
   render?: { status: "idle" | "running" | "done" | "failed"; jobId?: string; file?: string; preview?: boolean; durationSec?: number; error?: string; log?: string };
 }
 
+// ---------- Edit brief: what kind of edit the creator asked for ----------
+export type LayoutId = "split-face-bottom" | "split-face-top" | "overlay" | "captions" | "motion";
+export type FacePosition = "top" | "bottom";
+
+export interface EditBrief {
+  layout: LayoutId;
+  captionStyle: CaptionStyleId;
+  aspect: AspectId;
+  removeSilences: boolean;
+  removeFillers: boolean;
+  keepBestTakes: boolean;
+  punchIn: boolean; // subtle zoom change at every cut
+  broll: boolean; // auto-sourced images of what is being said
+  titles: boolean; // kinetic titles for key phrases
+  lowerThird: boolean;
+  grade: string; // auto | subtle | neutral_punch | warm_cinematic | none
+  targetLength: number | null;
+  notes?: string;
+}
+
+export function layoutToFormat(layout: LayoutId): { format: FormatId; facePosition: FacePosition } {
+  switch (layout) {
+    case "split-face-bottom":
+      return { format: "split", facePosition: "bottom" };
+    case "split-face-top":
+      return { format: "split", facePosition: "top" };
+    case "overlay":
+      return { format: "overlay", facePosition: "top" };
+    case "captions":
+      return { format: "captions", facePosition: "top" };
+    case "motion":
+      return { format: "motion", facePosition: "top" };
+  }
+}
+
 export interface EditState {
   videouse?: VideoUseState;
+  brief?: EditBrief;
+  facePosition?: FacePosition;
+  cleanFile?: string; // cuts + audio cleanup applied, no overlays (preview + Remotion input)
+  cleanKey?: string; // hash of source + enabled cuts the clean file was built from
+  cleanDuration?: number;
+  cutPoints?: number[]; // output-time boundaries where a cut happened
+  auto?: { status: "idle" | "running" | "done" | "failed"; jobId?: string; error?: string; stage?: string };
   sourceFile?: string; // storage-relative path of the concatenated, normalized source
   sourceDuration?: number;
   transcript?: Transcript;
@@ -190,6 +232,8 @@ export interface EditState {
     aspect?: AspectId;
     error?: string;
     durationSec?: number;
+    engine?: "remotion" | "ffmpeg" | "videouse";
+    warning?: string;
   };
 }
 

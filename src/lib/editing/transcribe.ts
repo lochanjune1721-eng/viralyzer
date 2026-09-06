@@ -20,7 +20,7 @@ export function detectProvider(): TranscribeProvider {
 
 export async function transcribe(
   wavPath: string,
-  opts: { duration: number; scriptHint?: string; language?: string },
+  opts: { duration: number; scriptHint?: string; language?: string; speechRanges?: Array<{ start: number; end: number }> },
 ): Promise<Transcript> {
   const provider = detectProvider();
   switch (provider) {
@@ -40,7 +40,7 @@ export async function transcribe(
     case "deepgram":
       return deepgram(wavPath, opts);
     default:
-      return mockTranscript(opts.scriptHint || "", opts.duration);
+      return mockTranscript(opts.scriptHint || "", opts.duration, opts.speechRanges);
   }
 }
 
@@ -178,9 +178,24 @@ function punctuateFromText(words: TranscriptWord[], text: string): TranscriptWor
   });
 }
 
-export function mockTranscript(script: string, duration: number): Transcript {
+export function mockTranscript(script: string, duration: number, speechRanges?: Array<{ start: number; end: number }>): Transcript {
   const tokens = script.replace(/\s+/g, " ").trim().split(" ").filter(Boolean);
   if (!tokens.length || duration <= 0) return { words: [], text: "", provider: "mock" };
+  // With audio silence ranges known, place the words only where speech is.
+  const ranges = (speechRanges || []).filter((r) => r.end - r.start > 0.3);
+  if (ranges.length) {
+    const total = ranges.reduce((s, r) => s + (r.end - r.start), 0);
+    const words: TranscriptWord[] = [];
+    let i = 0;
+    for (const [ri, r] of ranges.entries()) {
+      const share = ri === ranges.length - 1 ? tokens.length - i : Math.round((tokens.length * (r.end - r.start)) / total);
+      const per = (r.end - r.start) / Math.max(1, share);
+      for (let k = 0; k < share && i < tokens.length; k++, i++) {
+        words.push({ text: tokens[i], start: +(r.start + k * per).toFixed(3), end: +(r.start + (k + 1) * per - Math.min(0.05, per * 0.2)).toFixed(3) });
+      }
+    }
+    return { words, text: tokens.join(" "), provider: "mock" };
+  }
   const lead = Math.min(0.6, duration * 0.05);
   const usable = Math.max(0.5, duration - lead * 2);
   const per = usable / tokens.length;

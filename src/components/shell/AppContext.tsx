@@ -10,6 +10,7 @@ export interface Capabilities {
   publishProvider: string;
   video: { ok: boolean; reason: string | null; host: "serverless" | "server" };
   videouse: { ok: boolean; reason: string | null };
+  remotion: { ok: boolean; reason: string | null };
 }
 
 interface AppState {

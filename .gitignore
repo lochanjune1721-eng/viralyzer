@@ -49,3 +49,6 @@ next-env.d.ts
 # python
 __pycache__/
 *.pyc
+
+# remotion
+/.remotion-bundle/

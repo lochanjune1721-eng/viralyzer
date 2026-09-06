@@ -5,7 +5,7 @@ import { CAPTION_STYLES } from "@/lib/editing/captions";
 import type { AspectId, CaptionStyleId, FormatId } from "@/lib/types";
 
 export const FORMATS: Array<{ id: FormatId; name: string; blurb: string }> = [
-  { id: "split", name: "Split screen", blurb: "You on top, auto-sourced visuals below" },
+  { id: "split", name: "Split screen", blurb: "You in one half, auto-sourced visuals in the other" },
   { id: "overlay", name: "Full-frame + overlays", blurb: "You fill the frame, visuals pop in the lower third" },
   { id: "captions", name: "Captions only", blurb: "You full-frame with word-by-word captions" },
   { id: "motion", name: "Motion design", blurb: "Kinetic typography and a lower third" },
@@ -21,12 +21,14 @@ export function FormatPicker({
   format,
   aspect,
   captionStyle,
+  facePosition = "bottom",
   onChange,
 }: {
   format: FormatId;
   aspect: AspectId;
   captionStyle: CaptionStyleId;
-  onChange: (patch: { format?: FormatId; aspect?: AspectId; captionStyle?: CaptionStyleId }) => void;
+  facePosition?: "top" | "bottom";
+  onChange: (patch: { format?: FormatId; aspect?: AspectId; captionStyle?: CaptionStyleId; facePosition?: "top" | "bottom" }) => void;
 }) {
   return (
     <div className="space-y-4">
@@ -48,6 +50,18 @@ export function FormatPicker({
           ))}
         </div>
       </div>
+      {format === "split" && (
+        <div>
+          <div className="mb-2 text-sm font-medium">Where are you in the split?</div>
+          <div className="flex gap-2">
+            {(["bottom", "top"] as const).map((p) => (
+              <button key={p} onClick={() => onChange({ facePosition: p })} className={cx("flex-1 rounded-xl border px-3 py-2 text-sm", facePosition === p ? "border-accent bg-accent/5" : "border-border hover:border-fg/30")}>
+                {p === "bottom" ? "You on the bottom, visuals on top" : "You on top, visuals below"}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div>
           <div className="mb-2 text-sm font-medium">Aspect ratio</div>

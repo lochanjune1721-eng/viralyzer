@@ -7,6 +7,7 @@ import { detectProvider } from "@/lib/editing/transcribe";
 import { env } from "@/lib/env";
 import { videoCapability } from "@/lib/media/capabilities";
 import { videoUseCapability } from "@/lib/videouse";
+import { remotionCapability } from "@/lib/editing/remotion/renderer";
 
 export async function GET() {
   const user = await getCurrentUser();
@@ -19,6 +20,7 @@ export async function GET() {
       publishProvider: env.publish.provider,
       video: videoCapability(),
       videouse: videoCapability().ok ? videoUseCapability() : { ok: false, reason: videoCapability().reason },
+      remotion: videoCapability().ok ? (({ ok, reason }) => ({ ok, reason }))(remotionCapability()) : { ok: false, reason: videoCapability().reason },
     },
   });
 }

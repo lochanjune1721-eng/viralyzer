@@ -9,8 +9,18 @@ An end-to-end web app for short-form video creators: **Ideation → Scripting �
 | **Ideation** | Type an idea or paste a reference (link, headline, tweet). Your niche from onboarding feeds every later stage. "Script this" moves the project on. |
 | **Scripting** | A short tap-to-select angle interview (take, controversial/safe, tone, audience, length, or a free-text custom angle), then DeepSeek returns **exactly three** scripts with different hooks (question / bold claim / story…). Pick one, edit inline, or ask for tweaks ("make it shorter"); every version stays in history. "Shoot this" attaches the final script. |
 | **Shooting** | Browser teleprompter + camera (`getUserMedia`, front camera by default, flip button). Script scrolls near the lens; play/pause, speed, font size, mirror, restart, and optional **voice-paced scrolling** (Web Speech API). Records in-browser (`MediaRecorder`) with multiple takes, previews, delete, primary/selected flags, or upload footage shot elsewhere. Takes are normalised to H.264 mp4 server-side. |
-| **Editing** | Automatic first pass: joins the selected takes, transcribes with word timestamps, detects **repeated attempts** (fuzzy match against the script and neighbouring lines, best take chosen by script similarity / fillers / hesitation / completeness), removes fillers, long pauses and dead air, then shows a timeline where any single cut can be undone. Choose a format: **split screen** (auto-sourced images per concept, replaceable), **full-frame with overlays**, **captions only**, or **motion design** (kinetic key phrases + lower third). Captions are always on, word-synced, four style presets, editable text. Export 9:16 / 1:1 / 16:9 with FFmpeg (noise reduction + loudness normalisation) and live progress. |
+| **Editing** | Upload a raw take (a three-minute phone video is fine) or arrive from Shooting, and answer one question: **what kind of edit do you need?** Pick a layout (split screen with you at the bottom and images of what you are saying on top, you on top, full-frame with pop-in visuals, motion graphics, captions only), aspect, caption style, what to cut (best take per line, silences, ums and uhs), punch-in zooms, lower third and a target length, then paste the script you read. One job does the rest: transcribes with word timestamps, keeps the **best take** of every repeated line, removes fillers, pauses and audio-detected silences, cleans the audio (denoise + loudness), sources images per concept, and renders the layout with **Remotion templates** (word-highlight captions, springing B-roll cards, kinetic titles, lower third, progress bar). The result shows first with Download and Publish; below it every cut can be undone on the timeline, visuals swapped, captions edited and the layout changed for a re-render. Exports 9:16 / 1:1 / 16:9. |
 | **Uploading** | Connect TikTok, Instagram Reels, YouTube Shorts, X and LinkedIn via OAuth (or one Ayrshare key). LLM-drafted caption, hashtags and title; checkbox per platform; **Post everywhere**; schedule for later; per-platform success/failure with retry and stored post links. |
+
+## Layout renders (Remotion templates)
+
+Layouts are React compositions under `remotion/` (split screen, overlay, captions, motion) rendered server-side with `@remotion/renderer` and a headless Chrome. Remotion draws the picture only; the audio is the cleaned, loudness-normalised cut from the FFmpeg pass, muxed back in so sync stays exact. Templates get word-timed captions, the B-roll schedule, cut points (for punch-in zooms), key phrases and your handle for the lower third.
+
+- Browser: `npx remotion browser ensure` downloads Chrome Headless Shell into `node_modules/.remotion`. The Docker image, the Codespaces devcontainer and `scripts/codespaces-start.sh` all do this for you, and any Chromium works via `REMOTION_BROWSER_EXECUTABLE`.
+- Bundle: compositions are bundled once per content hash (`npm run remotion:bundle`, done at Docker build time) into `REMOTION_BUNDLE_DIR`.
+- Fallback: if no browser is available, or a render fails, the same edit renders with the built-in FFmpeg engine and the result carries a warning saying so. `REMOTION_DISABLE=1` forces that engine.
+- Memory: budget about 2 GB of RAM for a 1080x1920 render.
+- Licence: Remotion is free for individuals and companies of up to three people; larger companies need a [company licence](https://remotion.dev/license).
 
 ## Edit by conversation (video-use engine)
 
@@ -24,7 +34,7 @@ The five stages connect, but none of them requires the others:
 
 - **Scripting** starts from any idea typed on its page.
 - **Shooting** is a full teleprompter studio at `/shooting`: paste any script, choose how the text comes in (scroll up, ticker left or right, word by word), set the speed, size, colour, backdrop and countdown, drag the prompter anywhere on the frame, mirror or flip it for teleprompter glass, use voice pacing, turn the camera off for prompter-only use, go fullscreen, and drive it from the keyboard (space, arrows, R, M, F). Recordings can be downloaded or saved into a project for editing.
-- **Editing** accepts any raw video at `/editing` (a three-minute take from your phone is fine) plus the script you read. The cleanup pass transcribes it, keeps the best take of every line, flags off-script asides, and removes fillers, pauses and dead air before you pick a format.
+- **Editing** accepts any raw video at `/editing` (a three-minute take from your phone is fine) plus the script you read. It asks what kind of edit you need, then transcribes, keeps the best take of every line, flags off-script asides, removes fillers, pauses, dead air and detected silences, and renders the layout you picked.
 - **Uploading** accepts a finished video at `/uploading` and goes straight to captions, hashtags and one-click posting.
 
 ## Running it
@@ -89,7 +99,8 @@ Vercel builds and serves the UI, ideation, scripting and account connections, bu
 | Variable | Used for | Without it |
 | --- | --- | --- |
 | `DEEPSEEK_API_KEY` | Scripts, refinements, captions, visual concepts, key phrases | Clearly-labelled placeholder scripts and heuristics |
-| `OPENAI_API_KEY` / `GROQ_API_KEY` / `DEEPGRAM_API_KEY` | Word-level transcription (Whisper / Nova) | The script is time-aligned to the footage, so cuts for retakes cannot be detected |
+| `ELEVENLABS_API_KEY` / `OPENAI_API_KEY` / `GROQ_API_KEY` / `DEEPGRAM_API_KEY` | Word-level transcription (Scribe / Whisper / Nova) | The script is time-aligned to the speech found by silence detection, so retakes cannot be told apart |
+| `REMOTION_BROWSER_EXECUTABLE` | A Chromium binary for Remotion renders (auto-detected from `node_modules/.remotion`, Playwright caches and `/usr/bin/chromium`) | Layouts render with the FFmpeg engine |
 | `PEXELS_API_KEY`, `UNSPLASH_ACCESS_KEY`, `GOOGLE_CSE_KEY`+`GOOGLE_CSE_CX` | Image sourcing | Keyless Wikipedia + Openverse search |
 | `GOOGLE_CLIENT_ID/SECRET`, `TIKTOK_CLIENT_KEY/SECRET`, `INSTAGRAM_APP_ID/SECRET`, `X_CLIENT_ID/SECRET`, `LINKEDIN_CLIENT_ID/SECRET` | Native OAuth publishing | Platform shows "needs app credentials" |
 | `AYRSHARE_API_KEY` | Aggregator publishing to every platform with one key | Native adapters are used |
@@ -99,6 +110,7 @@ Vercel builds and serves the UI, ideation, scripting and account connections, bu
 
 ```
 src/app                 Next.js 16 App Router pages + route handlers (src/app/api/**)
+remotion                Remotion compositions: split / overlay / captions / motion templates
 src/components/shell    Sidebar / bottom tab bar / onboarding / stage index
 src/components/<stage>  One folder per stage, each a self-contained workspace
 src/lib/db              node:sqlite database + repository (projects, jobs, connections, publications)
@@ -124,4 +136,6 @@ v1 uses a signed cookie that maps to a local user record; onboarding collects na
 npm run dev / build / start / lint
 npx tsx scripts/test-cleanup.ts     # exercise the retake / filler / pause detector on a synthetic transcript
 npx tsx scripts/test-render.ts      # render every format + aspect from a synthetic clip
+npm run remotion:browser            # download Chrome Headless Shell for Remotion renders
+npm run remotion:bundle             # pre-bundle the Remotion compositions (REMOTION_BUNDLE_DIR)
 ```

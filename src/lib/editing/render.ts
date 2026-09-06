@@ -23,6 +23,7 @@ export interface RenderOptions {
   visuals: Visual[];
   keyPhrases: string[];
   lowerThird: { name: string; subtitle: string } | null;
+  facePosition?: "top" | "bottom";
   onProgress?: (fraction: number, message?: string) => void;
 }
 
@@ -55,15 +56,18 @@ export function buildFilterGraph(opts: RenderOptions, keeps: Range[], assPath: s
   if (opts.format === "split") {
     const faceW = landscape ? w / 2 : w;
     const faceH = landscape ? h : h / 2;
+    const faceBottom = opts.facePosition === "bottom";
     parts.push(`[vcut]${cover(faceW, faceH)}[face]`);
     parts.push(`color=c=0x0f0f12:s=${w}x${h}:r=30[bg]`);
-    parts.push(`[bg][face]overlay=0:0:shortest=1[base0]`);
+    const faceX = landscape && faceBottom ? w / 2 : 0;
+    const faceY = !landscape && faceBottom ? h / 2 : 0;
+    parts.push(`[bg][face]overlay=${faceX}:${faceY}:shortest=1[base0]`);
     last = "base0";
     imageInputs.forEach(({ index, visual }, i) => {
       const tag = `img${i}`;
       parts.push(`[${index}:v]${cover(faceW, faceH)}[${tag}]`);
-      const x = landscape ? w / 2 : 0;
-      const y = landscape ? 0 : h / 2;
+      const x = landscape ? (faceBottom ? 0 : w / 2) : 0;
+      const y = landscape ? 0 : faceBottom ? 0 : h / 2;
       parts.push(
         `[${last}][${tag}]overlay=${x}:${y}:enable='between(t,${visual.start.toFixed(3)},${visual.end.toFixed(3)})':shortest=1[base${i + 1}]`,
       );

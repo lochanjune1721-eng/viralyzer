@@ -29,6 +29,17 @@ if [ -n "$PY" ] && ! "$PY" -c "import requests, numpy, PIL" >/dev/null 2>&1; the
 fi
 export PYTHON_PATH="$PY"
 
+# Headless Chrome for Remotion layout renders (motion graphics, split screen, captions).
+if [ -z "$REMOTION_BROWSER_EXECUTABLE" ] && [ -z "$(find node_modules/.remotion -type f -name chrome-headless-shell 2>/dev/null | head -1)" ] && [ ! -x /usr/bin/chromium ]; then
+  echo "Downloading Chrome Headless Shell for Remotion renders…"
+  npx remotion browser ensure >/tmp/remotion-browser.log 2>&1 || echo "Could not download a headless browser (see /tmp/remotion-browser.log); renders will use the FFmpeg engine."
+fi
+if [ ! -d remotion-bundle ] || [ -n "$(find remotion package.json -newer remotion-bundle -print -quit 2>/dev/null)" ]; then
+  echo "Bundling Remotion templates…"
+  REMOTION_BUNDLE_DIR=./remotion-bundle npx tsx scripts/remotion-bundle.ts >/tmp/remotion-bundle.log 2>&1 && touch remotion-bundle || echo "Remotion bundling failed (see /tmp/remotion-bundle.log)"
+fi
+export REMOTION_BUNDLE_DIR="$PWD/remotion-bundle"
+
 # 1. Tunnel first, so the app can learn its public address.
 echo "Opening a public tunnel…"
 nohup npx --yes cloudflared tunnel --url http://localhost:3000 --no-autoupdate > /tmp/tunnel.log 2>&1 &

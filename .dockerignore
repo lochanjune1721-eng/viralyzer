@@ -8,3 +8,4 @@ storage
 !.env.example
 *.log
 __pycache__
+remotion-bundle
