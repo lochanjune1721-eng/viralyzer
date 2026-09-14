@@ -1,0 +1,7 @@
+# Minimal Supabase CLI config. `supabase init` regenerates a full file if your
+# CLI version wants more keys; keep project_id and the db section.
+project_id = "viralyzer"
+
+[db]
+port = 54322
+major_version = 17

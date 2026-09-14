@@ -1,0 +1,21 @@
+# Local database only (the API / worker / Redis compose file arrives with those slices).
+# Postgres 17 with pgvector, matching what Supabase runs.
+services:
+  db:
+    image: pgvector/pgvector:pg17
+    ports:
+      - "54322:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 2s
+      timeout: 3s
+      retries: 20
+    volumes:
+      - viralyzer-pg:/var/lib/postgresql/data
+
+volumes:
+  viralyzer-pg:

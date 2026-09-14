@@ -52,3 +52,9 @@ __pycache__/
 
 # remotion
 /.remotion-bundle/
+
+# python backend
+backend/.venv/
+backend/.pytest_cache/
+backend/.ruff_cache/
+backend/dist/
